@@ -1,6 +1,6 @@
 import boto3
 
-AWS_REGION = "us-east-1"
+AWS_REGION = "ap-south-1"
 ec2 = boto3.client("ec2", region_name=AWS_REGION)
 
 def get_unattached_volumes():
