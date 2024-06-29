@@ -22,8 +22,33 @@ resource "aws_sns_topic_subscription" "arc_subsciption" {
     endpoint = each.value
 }
 
-resource "aws_cloudwatch_event_rule" "arc_cw_rule" {
-    name = "arc_cronjob"
-    description = "Execute every 10 mins"
-    schedule_expression = "cron(0/10 * * * ? *)"
+resource "aws_cloudwatch_event_rule" "arc_volume_creation_rule" {
+  name        = "arc-volume-creation-rule"
+  description = "Capture EBS volume creation events"
+  event_pattern = <<EOF
+{
+  "source": ["aws.ec2"],
+  "detail-type": ["AWS API Call via CloudTrail"],
+  "detail": {
+    "eventSource": ["ec2.amazonaws.com"],
+    "eventName": ["CreateVolume"]
+  }
 }
+EOF
+}
+
+resource "aws_cloudwatch_event_rule" "arc_volume_deletion_rule" {
+  name        = "arc-volume-deletion-rule"
+  description = "Capture EBS volume deletion events"
+  event_pattern = <<EOF
+{
+  "source": ["aws.ec2"],
+  "detail-type": ["AWS API Call via CloudTrail"],
+  "detail": {
+    "eventSource": ["ec2.amazonaws.com"],
+    "eventName": ["DeleteVolume"]
+  }
+}
+EOF
+}
+
