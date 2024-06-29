@@ -1,5 +1,6 @@
 # Create EBS Volume in Mumbai region
 resource "aws_ebs_volume" "arc_volume" {
+  count = 3
   availability_zone = "ap-south-1a"
   size              = 1
 
