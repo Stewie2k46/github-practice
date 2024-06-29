@@ -14,7 +14,7 @@ resource "aws_sns_topic" "arc_sns_topic" {
 }
 
 # Create Subscription for SNS Topic
-resource "aws_sns_topic_subscription" "arc_subsciption" {
+resource "aws_sns_topic_subscription" "arc_subscription" {
     for_each = toset(var.email_ids)
 
     topic_arn = aws_sns_topic.arc_sns_topic.arn
@@ -25,32 +25,27 @@ resource "aws_sns_topic_subscription" "arc_subsciption" {
 resource "aws_cloudwatch_event_rule" "arc_volume_creation_rule" {
   name        = "arc-volume-creation-rule"
   description = "Capture EBS volume creation events"
-  event_pattern = <<EOF
-{
-  "source": ["aws.ec2"],
-  "detail-type": ["AWS API Call via CloudTrail"],
-  "detail": {
-    "eventSource": ["ec2.amazonaws.com"],
-    "eventName": ["CreateVolume"]
+  event_pattern = jsonencode({
+   "source": ["aws.ec2"],
+   "detail-type": ["AWS API Call via CloudTrail"],
+   "detail": {
+     "eventSource": ["ec2.amazonaws.com"],
+     "eventName": ["CreateVolume"]
   }
-}
-EOF
-}
+})
+
 
 resource "aws_cloudwatch_event_rule" "arc_volume_deletion_rule" {
   name        = "arc-volume-deletion-rule"
   description = "Capture EBS volume deletion events"
-  event_pattern = <<EOF
-{
-  "source": ["aws.ec2"],
-  "detail-type": ["AWS API Call via CloudTrail"],
-  "detail": {
-    "eventSource": ["ec2.amazonaws.com"],
-    "eventName": ["DeleteVolume"]
+  event_pattern = jsonencode({
+   "source": ["aws.ec2"],
+   "detail-type": ["AWS API Call via CloudTrail"],
+   "detail": {
+     "eventSource": ["ec2.amazonaws.com"],
+     "eventName": ["DeleteVolume"]
   }
-}
-EOF
-}
+})
 
 resource "aws_cloudwatch_event_target" "creation_target" {
   rule      = aws_cloudwatch_event_rule.arc_volume_creation_rule.name
@@ -59,7 +54,7 @@ resource "aws_cloudwatch_event_target" "creation_target" {
 }
 
 resource "aws_cloudwatch_event_target" "deletion_target" {
-  rule      = aws_cloudwatch_event_rule.arc_volume_creation_rule.name
+  rule      = aws_cloudwatch_event_rule.arc_volume_deletion_rule.name
   target_id = "send_deletion_notification"
   arn       = aws_sns_topic.arc_sns_topic.arn
 }
