@@ -23,44 +23,33 @@ resource "aws_sns_topic_subscription" "arc_subscription" {
   endpoint  = each.value
 }
 
-# CloudWatch Event Rule for EBS volume creation
-resource "aws_cloudwatch_event_rule" "arc_volume_creation_rule" {
-  name        = "arc-volume-creation-rule"
-  description = "Capture EBS volume creation events"
-  event_pattern = jsonencode({
-    "source"       : ["aws.ec2"],
-    "detail-type"  : ["AWS API Call via CloudTrail"],
-    "detail"       : {
-      "eventSource" : ["ec2.amazonaws.com"],
-      "eventName"   : ["CreateVolume"]
-    }
-  })
-}
+
 
 # CloudWatch Event Rule for EBS volume deletion
-resource "aws_cloudwatch_event_rule" "arc_volume_deletion_rule" {
+resource "aws_cloudwatch_event_rule" "arc_volume_changes_rule" {
   name        = "arc-volume-deletion-rule"
   description = "Capture EBS volume deletion events"
-  event_pattern = jsonencode({
-    "source"       : ["aws.ec2"],
-    "detail-type"  : ["AWS API Call via CloudTrail"],
-    "detail"       : {
-      "eventSource" : ["ec2.amazonaws.com"],
-      "eventName"   : ["DeleteVolume"]
-    }
-  })
+  event_pattern = jsonencode(
+    {
+  "source": ["aws.ec2"],
+  "detail-type": ["EBS Volume Notification"],
+  "detail": {
+    "event": ["deleteVolume", "createVolume"]
+  }
+}
+  )
 }
 
 # CloudWatch Event Target for creation rule
 resource "aws_cloudwatch_event_target" "creation_target" {
-  rule      = aws_cloudwatch_event_rule.arc_volume_creation_rule.name
+  rule      = aws_cloudwatch_event_rule.arc_volume_changes_rule.name
   target_id = "send_creation_notification"
   arn       = aws_sns_topic.arc_sns_topic.arn
 }
 
 # CloudWatch Event Target for deletion rule
 resource "aws_cloudwatch_event_target" "deletion_target" {
-  rule      = aws_cloudwatch_event_rule.arc_volume_deletion_rule.name
+  rule      = aws_cloudwatch_event_rule.arc_volume_changes_rule.name
   target_id = "send_deletion_notification"
   arn       = aws_sns_topic.arc_sns_topic.arn
 }
