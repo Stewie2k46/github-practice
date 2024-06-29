@@ -52,3 +52,31 @@ resource "aws_cloudwatch_event_rule" "arc_volume_deletion_rule" {
 EOF
 }
 
+resource "aws_cloudwatch_event_target" "creation_target" {
+  rule      = aws_cloudwatch_event_rule.arc_volume_creation_rule.name
+  target_id = "send_creation_notification"
+  arn       = aws_sns_topic.arc_sns_topic.arn
+}
+
+resource "aws_cloudwatch_event_target" "deletion_target" {
+  rule      = aws_cloudwatch_event_rule.arc_volume_creation_rule.name
+  target_id = "send_deletion_notification"
+  arn       = aws_sns_topic.arc_sns_topic.arn
+}
+
+resource "aws_lambda_permission" "allow_cloudwatch_to_invoke_sns_creation" {
+  statement_id  = "AllowCloudWatchToInvokeSNSCreation"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_sns_topic.arc_sns_topic.arn
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.arc_volume_creation_rule.arn
+}
+
+resource "aws_lambda_permission" "allow_cloudwatch_to_invoke_sns_deletion" {
+  statement_id  = "AllowCloudWatchToInvokeSNSDeletion"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_sns_topic.arc_sns_topic.arn
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.arc_volume_deletion_rule.arn
+}
+
