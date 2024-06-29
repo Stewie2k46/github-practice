@@ -25,5 +25,5 @@ resource "aws_sns_topic_subscription" "arc_subsciption" {
 resource "aws_cloudwatch_event_rule" "arc_cw_rule" {
     name = "arc_cronjob"
     description = "Execute every 10 mins"
-    schedule_expression = "rate(10minutes)"
+    schedule_expression = "cron(0/10 * * * ? *)"
 }
