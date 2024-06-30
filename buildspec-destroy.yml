@@ -21,11 +21,11 @@ phases:
       # Initialize Terraform (if not already initialized)
       - terraform init -input=false
 
-      # Perform Terraform validate
+      # Perform Terraform validate (optional)
       - terraform validate
 
-      # Perform Terraform plan
-      - terraform plan -out=tfplan -input=false
+      # Destroy Terraform resources
+      - terraform destroy -input=false -auto-approve
 
 artifacts:
   files:
