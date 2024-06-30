@@ -5,7 +5,7 @@ resource "aws_ebs_volume" "arc_volume" {
   size              = 1
 
   tags = {
-    Name = "arc_volume"
+    Name = "arc_volume_1"
   }
 }
 
